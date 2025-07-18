@@ -32,16 +32,20 @@ def pass_at_1(
 def extract_code_blocks(text: str) -> str:
     # Pattern to match ```...``` blocks
     pattern = r"```(?:\w+)?\n?(.*?)\n?```"
-    # (+ ```) as we add the opening "```python" to the gen_prefix
-    matches = re.findall(pattern, r"```" + text, re.DOTALL)
-    # if no matches, try to match ```...``` blocks (after removing the language)
+    # Search directly in the text without prepending
+    matches = re.findall(pattern, text, re.DOTALL)
+    # If no matches, try to match after removing language specifier
     if not matches:
         text_without_lang = re.sub(r"```python", "```", text)
         matches = re.findall(pattern, text_without_lang, re.DOTALL)
     if not matches:
         return ""
-    else:
-        return matches[0]
+    # Select the first match that looks like a function (starts with 'def ')
+    for match in matches:
+        if match.strip().startswith("def "):
+            return match
+    # If none, return the first match
+    return matches[0]
 
 
 def build_predictions(resps: list[list[str]], docs: list[dict]) -> list[list[str]]:
